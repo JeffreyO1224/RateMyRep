@@ -1,0 +1,15 @@
+.login-signup {
+    display: flex;
+    justify-content: right;
+    align-content: center;
+}
+
+#login {
+    padding-right: 3%;
+    border: none;
+    background-color: transparent;
+}
+
+#sign-up {
+    padding-right: 3%
+}
