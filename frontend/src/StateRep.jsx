@@ -492,7 +492,7 @@ const StateRep = () => {
   };
 
   return (
-    <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+    <div style={{ maxWidth: "100%", justifyContent: "center", textAlign: "center", padding: "20px" }}>
       <a href="/">
         <img 
           src="/RMRlogo.png" 
@@ -526,60 +526,65 @@ const StateRep = () => {
             const phone = phoneBook[member.name] || "Phone number not available";
 
             return (
-<li 
-  key={member.bioguideId} 
-  style={{ 
-    marginBottom: "16px", 
-    display: "flex", 
-    flexWrap: "wrap", 
-    gap: "12px", 
-    transition: "transform 0.3s ease, background-color 0.3s ease, color 0.3s ease",
-    padding: "16px", 
-    borderRadius: "8px",
-    color: "black",
-    position: "relative",
-    overflow: "hidden", // to contain the arrow
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.backgroundColor = member.partyName.includes("Republican") ? "rgb(179, 25, 25)" : ( member.partyName.includes("Democrat") ? "rgb(25, 79, 179)" : "rgb(25, 179, 25)");
-    e.currentTarget.style.color = "white";
-    e.currentTarget.style.transform = "translateX(-10px)";
-    const arrow = document.createElement("span");
-    arrow.innerHTML = "<img src='/triplearrows.png' alt='Arrow' style='width: 100px; height: 200px;' />";
-    arrow.style.position = "absolute";
-    arrow.style.right = "8px";
-    arrow.style.top = "50%";
-    arrow.style.transform = "translateY(-50%)";
-    arrow.style.opacity = "0";
-    arrow.style.transition = "opacity 0.3s ease-in";
-    arrow.className = "hover-arrow";
-    e.currentTarget.insertBefore(arrow, e.currentTarget.firstChild);
-    requestAnimationFrame(() => arrow.style.opacity = "1");
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.backgroundColor = "transparent";
-    e.currentTarget.style.color = "black";
-    e.currentTarget.style.transform = "translateX(0)";
-    const arrow = e.currentTarget.querySelector(".hover-arrow");
-    if (arrow) {
-      arrow.style.opacity = "0";
-    }
-  }}
->
+      <a href={`/members/${member.bioguideId}/bills`}>
+        {console.log(member.bioguideId)}
+      <li 
+        key={member.bioguideId} 
+        style={{ 
+        marginBottom: "16px", 
+        display: "flex", 
+        flexWrap: "wrap", 
+        gap: "12px", 
+        transition: "transform 0.3s ease, background-color 0.3s ease, color 0.3s ease",
+        padding: "16px", 
+        borderRadius: "8px",
+        color: "black",
+        position: "relative",
+        overflow: "hidden", // to contain the arrow
+        cursor: "pointer", // Change cursor to pointer on hover
+        }}
+        onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = member.partyName.includes("Republican") ? "rgb(179, 25, 25)" : ( member.partyName.includes("Democrat") ? "rgb(25, 79, 179)" : "rgb(25, 179, 25)");
+        e.currentTarget.style.color = "white";
+        e.currentTarget.style.transform = "translateX(-10px)";
+        const arrow = document.createElement("span");
+        arrow.innerHTML = "<img src='/triplearrows.png' alt='Arrow' style='width: 100px; height: 200px;' />";
+        arrow.style.position = "absolute";
+        arrow.style.right = "8px";
+        arrow.style.top = "50%";
+        arrow.style.transform = "translateY(-50%)";
+        arrow.style.opacity = "0";
+        arrow.style.transition = "opacity 0.3s ease-in";
+        arrow.className = "hover-arrow";
+        e.currentTarget.insertBefore(arrow, e.currentTarget.firstChild);
+        requestAnimationFrame(() => arrow.style.opacity = "1");
+        }}
+        onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = "transparent";
+        e.currentTarget.style.color = "black";
+        e.currentTarget.style.transform = "translateX(0)";
+        const arrow = e.currentTarget.querySelector(".hover-arrow");
+        if (arrow) {
+          arrow.style.opacity = "0";
+        }
+        }}
+      >
               <img
               src={member.depiction?.imageUrl}
               alt={member.name}
               style={{ width: "100%", maxWidth: "200px", height: "auto", objectFit: "cover", borderRadius: "8px" }}
               />
               <div style={{ flex: "1", minWidth: "200px" }}>
-                <h3>{member.name}</h3>
-                <p><strong>Party:</strong> {member.partyName}</p>
-                {member.district && <p><strong>District:</strong> {member.district}</p>}
-                <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
-                <p><strong>Phone:</strong> {phone}</p>
+              <h3>{member.name}</h3>
+              <p><strong>Party:</strong> {member.partyName}</p>
+              {member.district && <p><strong>District:</strong> {member.district}</p>}
+              <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
+              <p><strong>Phone:</strong> {phone}</p>
               </div>
               </li>
+              </a>
             );
+            
           })}
         </ul>
       )}
