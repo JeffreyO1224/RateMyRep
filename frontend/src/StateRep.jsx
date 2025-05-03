@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const StateRep = () => {
+  const [search, setSearch] = useState(false);
   const [stateCode, setStateCode] = useState("");
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
@@ -469,6 +470,12 @@ const StateRep = () => {
 
 
       setMembers(response.data.members || []);
+      if (response.data.members.length === 0) {
+        setSearch(false);
+      }
+      else {
+        setSearch(true);
+      }
     } catch (err) {
       setError("Could not fetch members for that state.");
       console.error(err);
@@ -483,16 +490,23 @@ const StateRep = () => {
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h2>Find Your State Representatives</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+      <a href="/">
+        <img 
+          src="/RMRlogo.png" 
+          alt="Logo" 
+          style={{ display: "block", margin: "0 auto", width: search ? "50%" : "100%", paddingBottom: "20px" }} 
+        />
+      </a>
+      <h2>Reach Out to Your State Representatives Now!</h2>
+      <form onSubmit={handleSubmit} style={{ display: "inline-block", textAlign: "center", width: "100%" }}>
         <input
           type="text"
           maxLength="2"
           placeholder="Enter state code (e.g. MI)"
           value={stateCode}
           onChange={(e) => setStateCode(e.target.value)}
-          style={{ padding: "8px", width: "60%", marginRight: "8px" }}
+          style={{ padding: "8px", width: "80%", marginRight: "8px" }}
         />
         <button type="submit" disabled={loading}>
           {loading ? "Loading..." : "Search"}
@@ -504,31 +518,64 @@ const StateRep = () => {
       {members.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, marginTop: "20px" }}>
           {members.map((member) => {
-            if (member.name.at(-1) == "."){
+            if (member.name.at(-1) === ".") {
               member.name = member.name.substring(0, member.name.length - 3);
-              
             }
             const phone = phoneBook[member.name] || "Phone number not available";
 
             return (
-              <li key={member.bioguideId} style={{ marginBottom: "16px", display: "flex", gap: "12px" }}>
-                <img
-                  src={member.depiction?.imageUrl}
-                  alt={member.name}
-                  style={{ width: "200px", height: "250px", objectFit: "cover" }}
-                />
-                <div>
-                  <h3>{member.name}</h3>
-                  <p><strong>Party:</strong> {member.partyName}</p>
-                  {member.district && <p><strong>District:</strong> {member.district}</p>}
-                  <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
-                  <p><strong>Phone:</strong> {phone}</p>
-                </div>
-                <div>
-                  <button>Sponsored Bills</button>
-                  <b></b>
-                  <button>Co-Sponsored Bills</button>
-                </div>
+<li 
+  key={member.bioguideId} 
+  style={{ 
+    marginBottom: "16px", 
+    display: "flex", 
+    flexWrap: "wrap", 
+    gap: "12px", 
+    transition: "transform 0.3s ease, background-color 0.3s ease, color 0.3s ease",
+    padding: "16px", 
+    borderRadius: "8px",
+    color: "black",
+    position: "relative",
+    overflow: "hidden", // to contain the arrow
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.backgroundColor = member.partyName.includes("Republican") ? "rgb(179, 25, 25)" : ( member.partyName.includes("Democrat") ? "rgb(25, 79, 179)" : "rgb(25, 179, 25)");
+    e.currentTarget.style.color = "white";
+    e.currentTarget.style.transform = "translateX(-10px)";
+    const arrow = document.createElement("span");
+    arrow.innerHTML = "<img src='/triplearrows.png' alt='Arrow' style='width: 100px; height: 200px;' />";
+    arrow.style.position = "absolute";
+    arrow.style.right = "8px";
+    arrow.style.top = "50%";
+    arrow.style.transform = "translateY(-50%)";
+    arrow.style.opacity = "0";
+    arrow.style.transition = "opacity 0.3s ease-in";
+    arrow.className = "hover-arrow";
+    e.currentTarget.insertBefore(arrow, e.currentTarget.firstChild);
+    requestAnimationFrame(() => arrow.style.opacity = "1");
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.backgroundColor = "transparent";
+    e.currentTarget.style.color = "black";
+    e.currentTarget.style.transform = "translateX(0)";
+    const arrow = e.currentTarget.querySelector(".hover-arrow");
+    if (arrow) {
+      arrow.style.opacity = "0";
+    }
+  }}
+>
+              <img
+              src={member.depiction?.imageUrl}
+              alt={member.name}
+              style={{ width: "100%", maxWidth: "200px", height: "auto", objectFit: "cover", borderRadius: "8px" }}
+              />
+              <div style={{ flex: "1", minWidth: "200px" }}>
+                <h3>{member.name}</h3>
+                <p><strong>Party:</strong> {member.partyName}</p>
+                {member.district && <p><strong>District:</strong> {member.district}</p>}
+                <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
+                <p><strong>Phone:</strong> {phone}</p>
+              </div>
               </li>
             );
           })}
