@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { Link } from 'react-router-dom';
+
 
 const StateRep = () => {
   const [stateCode, setStateCode] = useState("");
@@ -518,16 +520,15 @@ const StateRep = () => {
                   style={{ width: "200px", height: "250px", objectFit: "cover" }}
                 />
                 <div>
-                  <h3>{member.name}</h3>
+                  <h3>
+                    <Link to={`/members/${member.bioguideId}/bills`}>
+                      {member.name}
+                    </Link>
+                  </h3>
                   <p><strong>Party:</strong> {member.partyName}</p>
                   {member.district && <p><strong>District:</strong> {member.district}</p>}
                   <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
                   <p><strong>Phone:</strong> {phone}</p>
-                </div>
-                <div>
-                  <button>Sponsored Bills</button>
-                  <b></b>
-                  <button>Co-Sponsored Bills</button>
                 </div>
               </li>
             );
