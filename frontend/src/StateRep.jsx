@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "./api";
 import { Link } from 'react-router-dom';
 
 
@@ -9,7 +9,6 @@ const StateRep = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const apiKey = import.meta.env.VITE_REACT_APP_CONGRESS_API_KEY;
 
   const phoneBook = {
     "Adams, Alma": "(202) 225-1510",
@@ -462,13 +461,7 @@ const StateRep = () => {
     setMembers([]);
 
     try {
-      const response = await axios.get(`https://api.congress.gov/v3/member/${stateCode.toUpperCase()}`, {
-        params: {
-          api_key: apiKey
-        }
-      });
-
-
+      const response = await api.get(`/members/${stateCode}`)
 
       setMembers(response.data.members || []);
     } catch (err) {
@@ -520,11 +513,11 @@ const StateRep = () => {
                   style={{ width: "200px", height: "250px", objectFit: "cover" }}
                 />
                 <div>
-                  <h3>
-                    <Link to={`/members/${member.bioguideId}/bills`}>
-                      {member.name}
-                    </Link>
-                  </h3>
+                <h3>
+                  <Link to={`/members/${member.bioguideId}/bills`}>
+                    {member.name}
+                  </Link>
+                </h3>
                   <p><strong>Party:</strong> {member.partyName}</p>
                   {member.district && <p><strong>District:</strong> {member.district}</p>}
                   <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
