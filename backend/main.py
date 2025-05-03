@@ -17,12 +17,12 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
-class CompletionRequest(BaseModel):
+class AIRequest(BaseModel):
     model: str = "gpt-4.1"
     input: str
 
 @app.post("/complete")
-async def complete(req: CompletionRequest):
+async def AIDraft(req: AIRequest):
     try:
         instructions = """
                         You are a legislative communications advisor. Your job is to transform a user’s raw talking points and context into a clear, respectful, and persuasive message to their Member of Congress about one or more bills the Member has sponsored or co‑sponsored.
