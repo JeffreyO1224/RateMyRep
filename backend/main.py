@@ -1,5 +1,4 @@
 import os
-import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import OpenAI
@@ -8,10 +7,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Retrieve API key from environment
 api_key = os.getenv("OPENAI_API_KEY")
 
-# Initialize OpenAI client
 client = OpenAI(api_key=api_key)
 
 app = FastAPI()
@@ -20,7 +17,6 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
-# Request model for completion endpoint
 class CompletionRequest(BaseModel):
     model: str = "gpt-4.1"
     input: str
@@ -50,6 +46,3 @@ async def complete(req: CompletionRequest):
         return {"output_text": response.output_text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# To run:
-# uvicorn backend.main:app --reload
