@@ -103,7 +103,7 @@ const BillPage = () => {
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', padding: '24px', gap: '24px', justifyContent: 'center' }}>
-        <div style={{ flex: '1 1 300px', maxWidth: '350px', margin: '0 auto' }}>
+        <div style={{ flex: '1 1 300px', margin: '0 auto' }}>
           {billDetails && (
             <div
               ref={bioRef}
