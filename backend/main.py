@@ -1,15 +1,28 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 from dotenv import load_dotenv
 import os
+from openai import OpenAI
+from typing import Any, Dict
+import json
 from index import getConnection
+
 
 app = FastAPI()
 
-
+class AIRequest(BaseModel):
+    name: str
+    occupation: str
+    neighborhood: str
+    state: str
+    concerns: str
+    message: str
+    sponsoredBills: str
+    cosponsoredBills: str
+    memberDetails: Dict[str, Any]
 
 class Depiction(BaseModel):
     attribution: Optional[str]
@@ -74,6 +87,39 @@ app.add_middleware(
 load_dotenv()
 API_KEY = os.getenv("VITE_REACT_APP_CONGRESS_API_KEY")
 
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(api_key=openai_api_key)
+
+
+
+@app.post("/draft")
+async def AIDraft(req: AIRequest):
+    try:
+        instructions = """
+                        You are a legislative communications advisor. Your job is to transform a user’s raw talking points and context into a clear, respectful, and persuasive message to their Member of Congress about one or more bills the Member has sponsored or co‑sponsored.
+                        You will be provided with a representative's name, district, and a list of bills they have sponsored or co-sponsored. You will also receive the user's input, which may include the Representative's name, district, bill numbers/titles, position (support or oppose), reasons, personal stories, and any specific asks.
+                        Your task is to draft a message that the user can send to their Member of Congress. The message should be concise, respectful, and focused on the policy and personal relevance. It should be around 150–250 words in length.
+                        When given the user's input (which may include the Representative's name, district, bill numbers/titles, position (support or oppose), reasons, personal stories, and any specific asks), produce a draft that:
+
+                        1. Opens with a polite greeting and identifies the user as a constituent.
+                        2. References the specific bill(s) by number and title.
+                        3. Clearly states the user’s position (support or oppose) and summarizes their key reasons.
+                        4. Incorporates any personal anecdotes or local impacts provided.
+                        5. Makes a clear call to action (e.g., “I urge you to vote yes on H.R. 1234,” or “Please oppose S. 5678”).
+                        6. Closes with a courteous thank‑you and the user’s name (and city/state, if provided).
+
+                        Keep the tone respectful, concise (around 150–250 words), and focused on the policy and personal relevance.  
+                        """
+        response = client.responses.create(
+            model="gpt-4.1",
+            instructions=instructions,
+            input=json.dumps(req.dict())
+        )
+        return {"output_text": response.output_text}
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 async def root():
@@ -118,7 +164,37 @@ def get_rep(bioguideID):
         return response.json()
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+
+@app.get("/bill/{billNumber}")
+def get_bill(billNumber):
+    url = f"https://api.congress.gov/v3/bill/119/hr/{billNumber}?api_key={API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
     
+@app.get("/cosponsors/{billNumber}")
+def get_cosponsor_by_bill(billNumber):
+    url = f"https://api.congress.gov/v3/bill/117/hr/{billNumber}/cosponsors?api_key=[{API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+    
+@app.get("/billdetails/{url}")
+def get_bill_details():
+    url = f"{url}?api_key={API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+
 
 '''
 #############################
@@ -261,3 +337,17 @@ async def createBillReview(bioguideID, username, rating, review_text):
 
     finally:
         await closeDBConnection(conn)
+    
+@app.get("/bulk/member")
+def get_reps(bioguideList: list[str] = Query(...)):
+    print(bioguideList)
+    members = []
+    for bioguide_id in bioguideList:
+        url = f"https://api.congress.gov/v3/member/{bioguide_id}?api_key={API_KEY}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            members.append(response.json())
+        except requests.RequestException as e:
+            raise HTTPException(status_code=502, detail=f"Error fetching data for {bioguide_id}: {str(e)}")
+    return {"members": members}

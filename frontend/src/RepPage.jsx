@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const RepPage = () => {
   const ratings = [5, 4, 4, 3, 5, 2, 5, 4];
@@ -33,7 +33,7 @@ const RepPage = () => {
   const [newRating, setNewRating] = useState(5);
   const [newName, setNewName] = useState('');
   const [newText, setNewText] = useState('');
-
+  const [draftText, setDraftText] = useState('');
   const bioRef = useRef(null);
   const apiKey = import.meta.env.VITE_REACT_APP_CONGRESS_API_KEY;
 
@@ -44,13 +44,38 @@ const RepPage = () => {
       ? 'rgb(25, 79, 179)'
       : 'rgb(25, 179, 25)';
   };
+  const getDraftText = async (name, occupation, neighborhood, state, concerns, message) => {
+    const sponsoredBills = sponsorBills.map((bill) => bill.title).join(', ');
+    const cosponsoredBills = cosponsorBills.map((bill) => bill.title).join(', ');
+    const messagePackage = {
+      name,
+      occupation,
+      neighborhood,
+      state,
+      concerns,
+      message,
+      sponsoredBills,
+      cosponsoredBills,
+      memberDetails,
+    };
+  
+    console.log("Sending draft message with:", messagePackage);
+    const AIMessage = await api.post('/draft', messagePackage);
+
+    if (AIMessage.status !== 200) {
+      console.error('Error generating draft message:', AIMessage.statusText);
+      return 'Oops. Lets try again later.';
+    }
+    
+    console.log(AIMessage.data);
+    return AIMessage.data.output_text;
+  };
+  
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
       try {
-        const res = await axios.get(`https://api.congress.gov/v3/member/${bioguideId}`, {
-          params: { api_key: apiKey },
-        });
+        const res = await api.get(`/member/${bioguideId}`)
         setMemberDetails(res.data.member);
       } catch (error) {
         console.error('Error fetching member details:', error);
@@ -59,10 +84,7 @@ const RepPage = () => {
 
     const fetchSponsorBills = async () => {
       try {
-        const res = await axios.get(
-          `https://api.congress.gov/v3/member/${bioguideId}/sponsored-legislation`,
-          { params: { api_key: apiKey } }
-        );
+        const res = await api.get(`/sponsorbills/${bioguideId}`)
         setSponsorBills(res.data.sponsoredLegislation || []);
       } catch (error) {
         console.error('Error fetching sponsor bills:', error);
@@ -71,10 +93,7 @@ const RepPage = () => {
 
     const fetchCosponsorBills = async () => {
       try {
-        const res = await axios.get(
-          `https://api.congress.gov/v3/member/${bioguideId}/cosponsored-legislation`,
-          { params: { api_key: apiKey } }
-        );
+        const res = await api.get(`/cosponsorbills/${bioguideId}`)
         setCosponsorBills(res.data.cosponsoredLegislation || []);
       } catch (error) {
         console.error('Error fetching cosponsor bills:', error);
@@ -140,8 +159,39 @@ const RepPage = () => {
                 borderRadius: '8px',
               }}
             >
-              {/* Tab Selector */}
-              <div
+                      <img
+                      src={memberDetails.depiction?.imageUrl}
+                      alt={memberDetails.name}
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        objectFit: 'cover',
+                        borderTopLeftRadius: '8px',
+                        borderTopRightRadius: '8px',
+                      }}
+                      />
+                      <h2 style={{ paddingLeft: '16px' }}>{memberDetails.directOrderName}</h2>
+                      <div style={{ textAlign: 'left', paddingLeft: '16px', paddingBottom: '16px' }}>
+                      <p><strong>Party:</strong> {memberDetails.partyHistory?.[0]?.partyName}</p>
+                      <p><strong>Chamber:</strong> {memberDetails.terms?.[0]?.chamber}</p>
+                      <p><strong>District:</strong> {memberDetails.district}</p>
+                      <p>
+                        <strong>Website:</strong>{' '}
+                        <a href={memberDetails.officialWebsiteUrl} target="_blank" rel="noopener noreferrer">
+                        {memberDetails.officialWebsiteUrl}
+                        </a>
+                      </p>
+                      <p><strong>Phone:</strong> {memberDetails.addressInformation?.phoneNumber}</p>
+                      <p><strong>Office:</strong> {memberDetails.addressInformation?.officeAddress}, {memberDetails.addressInformation?.city} {memberDetails.addressInformation?.zipCode}</p>
+                      </div>
+                    </div>
+                    )}
+                  </div>
+
+                  {/* Tab Content */}
+        <div style={{ flex: '2 1 600px', margin: '0 auto' }}>
+                        {/* Tab Selector */}
+                        <div
                 style={{
                   display: 'flex',
                   justifyContent: 'center',
@@ -150,7 +200,7 @@ const RepPage = () => {
                   borderRadius: '8px 8px 0 0',
                 }}
               >
-                {['bills', 'comments'].map((tab) => (
+                {['bills', 'comments', 'draft'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -170,36 +220,7 @@ const RepPage = () => {
                   </button>
                 ))}
               </div>
-
-              {/* Bio Content */}
-              <img
-                src={memberDetails.depiction?.imageUrl}
-                alt={memberDetails.name}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  objectFit: 'cover',
-                }}
-              />
-              <h2 style={{ paddingLeft: '16px' }}>{memberDetails.directOrderName}</h2>
-              <div style={{ textAlign: 'left', paddingLeft: '16px', paddingBottom: '16px' }}>
-                <p><strong>Party:</strong> {memberDetails.partyHistory?.[0]?.partyName}</p>
-                <p><strong>Chamber:</strong> {memberDetails.terms?.[0]?.chamber}</p>
-                <p><strong>District:</strong> {memberDetails.district}</p>
-                <p>
-                  <strong>Website:</strong>{' '}
-                  <a href={memberDetails.officialWebsiteUrl} target="_blank" rel="noopener noreferrer">
-                    {memberDetails.officialWebsiteUrl}
-                  </a>
-                </p>
-                <p><strong>Phone:</strong> {memberDetails.addressInformation?.phoneNumber}</p>
-                <p><strong>Office:</strong> {memberDetails.addressInformation?.officeAddress}, {memberDetails.addressInformation?.city} {memberDetails.addressInformation?.zipCode}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Tab Content */}
+        
         <div style={{ flex: '2 1 600px' }}>
           {activeTab === 'bills' && (
             <div
@@ -224,6 +245,9 @@ const RepPage = () => {
                     {sponsorBills.map((bill, index) => (
                       <li
                         key={index}
+                        onClick={() => {
+                          window.location.href = `/bills/${bill.number}`;
+                        }}
                         style={{
                           marginBottom: '8px',
                           padding: '12px',
@@ -274,16 +298,7 @@ const RepPage = () => {
                       <li
                         key={index}
                         onClick={() => {
-                          console.log(bill);
-                          try {
-                            axios.get(bill.url, {
-                              params: { api_key: apiKey },
-                            }).then((response) => {
-                              console.log('Bill Details:', response.data);
-                            });
-                          } catch (error) {
-                            console.error('Err:', error);
-                          }
+                          window.location.href = `/bills/${bill.number}`;
                         }}
                         style={{
                           marginBottom: '8px',
@@ -496,6 +511,168 @@ const RepPage = () => {
               })()}
             </div>
           )}
+
+          {activeTab === 'draft' && (
+            <div>
+              <h3>Use AI to Help You Draft!</h3>
+              <div style={{ padding: '24px', maxWidth: '600px', margin: '0 auto' }}>
+                {draftText && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4>Drafted Message:</h4>
+                    <p>{draftText}</p>
+                  </div>
+                )}
+                {!draftText && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const name = formData.get('name');
+                    const occupation = formData.get('occupation');
+                    const neighborhood = formData.get('neighborhood');
+                    const state = formData.get('state');
+                    const concerns = formData.get('concerns');
+                    const message = formData.get('message');
+
+                    if (name && occupation && neighborhood && state && concerns && message) {
+                      const draft = getDraftText(name, occupation, neighborhood, state, concerns, message);
+                      setDraftText(draft);
+                      e.target.reset();
+                    } else {
+                      alert('Please fill out all fields.');
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    backgroundColor: '#f4f4f4',
+                    padding: '16px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <div>
+                    <label>
+                      Name:
+                      <input
+                        type="text"
+                        name="name"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Occupation:
+                      <input
+                        type="text"
+                        name="occupation"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Neighborhood:
+                      <input
+                        type="text"
+                        name="neighborhood"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      State:
+                      <input
+                        type="text"
+                        name="state"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Primary Concerns:
+                      <textarea
+                        name="concerns"
+                        rows="3"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Personal Message:
+                      <textarea
+                        name="message"
+                        rows="5"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Generate Draft
+                  </button>
+                </form>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </div>
