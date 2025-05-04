@@ -73,6 +73,28 @@ def get_bill(billNumber):
         return response.json()
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+    
+@app.get("/cosponsors/{billNumber}")
+def get_cosponsor_by_bill(billNumber):
+    url = f"https://api.congress.gov/v3/bill/117/hr/{billNumber}/cosponsors?api_key=[{API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+    
+@app.get("/bill/{url}")
+def get_bill_details():
+    url = f"{url}?api_key={API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+
+
 
 '''
 #############################

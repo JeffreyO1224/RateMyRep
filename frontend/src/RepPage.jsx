@@ -1,7 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import api from './api';
-import axios from 'axios';
 const RepPage = () => {
   const ratings = [5, 4, 4, 3, 5, 2, 5, 4];
   const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
@@ -243,7 +242,7 @@ const RepPage = () => {
                         >
                           {bill.title} ({bill.congress}th Congress)
                         </p>
-                        <p><strong>Policy Area:</strong> {bill.policyArea?.name || 'N/A'}</p>
+                        <p><strong>Action Date:</strong> {bill.latestAction?.actionDate || 'N/A'}</p>
                         <p><strong>Latest Action:</strong> {bill.latestAction?.text || 'N/A'}</p>
                       </li>
                     ))}
@@ -268,11 +267,7 @@ const RepPage = () => {
                         onClick={() => {
                           console.log(bill);
                           try {
-                            axios.get(bill.url, {
-                              params: { api_key: apiKey },
-                            }).then((response) => {
-                              console.log('Bill Details:', response.data);
-                            });
+                            api.get(`/billdetails/${url}`)
                           } catch (error) {
                             console.error('Err:', error);
                           }
@@ -304,7 +299,7 @@ const RepPage = () => {
                         >
                           {bill.title} ({bill.congress}th Congress)
                         </p>
-                        <p><strong>Policy Area:</strong> {bill.policyArea?.name || 'N/A'}</p>
+                        <p><strong>Action Date:</strong> {bill.latestAction?.actionDate || 'N/A'}</p>
                         <p><strong>Latest Action:</strong> {bill.latestAction?.text || 'N/A'}</p>
                       </li>
                     ))}
