@@ -222,16 +222,23 @@ async def getBillReviews(bioguideID):
     finally:
         await closeDBConnection(conn)
 
-# @app.post("/member/{bioguideID}/reviews")
-# async def createRepReview(bioguideID, username, rating, review_text):
-#     conn = await getConnection()
+@app.post("/bills/{bioguideID}/reviews/username={username}:rating={rating}:review_text={review_text}")
+async def createRepReview(bioguideID, username, rating, review_text):
+    conn = await getConnection()
 
-#     try:
-#         query = f'''
-#         INSERT INTO Representative_review (rep_id, reviewer, created_at, rating, review)
-#         VALUES
-#             ({bioguideID}, {username}, CURRENT_TIMESTAMP, {rating}, {review_text})
-#         '''
+    try:
+        query = f'''
+        INSERT INTO Representative_review (rep_id, reviewer, created_at, rating, review)
+        VALUES
+            ('{bioguideID}', '{username}', CURRENT_TIMESTAMP, '{rating}', '{review_text}')
+        '''
 
-#     finally:
-#         await closeDBConnection(conn)
+        try:
+            await conn.fetch(f'''INSERT INTO USERS (username, password) VALUES ('{username}', 'default_password')''')
+        except:
+            print("Failed for some reason. User probably already exists")
+        await conn.fetch(query)
+
+    finally:
+        await closeDBConnection(conn)
+
