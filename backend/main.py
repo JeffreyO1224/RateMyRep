@@ -9,61 +9,6 @@ from index import getConnection
 
 app = FastAPI()
 
-
-
-class Depiction(BaseModel):
-    attribution: Optional[str]
-    imageUrl: Optional[str]
-
-
-class Term(BaseModel):
-    chamber: Optional[str]
-    startYear: Optional[int]
-
-
-class Terms(BaseModel):
-    item: List[Term]
-
-
-class Member(BaseModel):
-    bioguideId: str
-    depiction: Optional[Depiction]
-    district: Optional[int]
-    name: str
-    partyName: str
-    state: str
-    terms: Optional[Terms]
-    updateDate: Optional[str]
-    url: Optional[str]
-
-
-class MembersResponse(BaseModel):
-    members: List[Member]
-
-
-class LatestAction(BaseModel):
-    actionDate: str
-    text: str
-
-
-class PolicyArea(BaseModel):
-    name: str
-
-
-class CosponsoredLegislation(BaseModel):
-    congress: int
-    introducedDate: str
-    latestAction: LatestAction
-    number: str
-    policyArea: PolicyArea
-    title: str
-    type: str
-    url: str
-
-
-class CosponsoredLegislationResponse(BaseModel):
-    cosponsoredLegislation: List[CosponsoredLegislation]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins = ["*"],
@@ -119,6 +64,15 @@ def get_rep(bioguideID):
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
     
+@app.get("/bill/{billNumber}")
+def get_bill(billNumber):
+    url = f"https://api.congress.gov/v3/bill/119/hr/{billNumber}?api_key={API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
 
 '''
 #############################

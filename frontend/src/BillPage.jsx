@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const BillPage = () => {
   const { billNumber } = useParams();
@@ -25,9 +25,7 @@ const BillPage = () => {
   useEffect(() => {
     const fetchBill = async () => {
       try {
-        const res = await axios.get(`https://api.congress.gov/v3/bill/119/hr/${billNumber}`, {
-          params: { api_key: apiKey },
-        });
+        const res = await await api.get(`/bill/${billNumber}`)
         setBillDetails(res.data.bill);
       } catch (err) {
         console.error('Failed to fetch bill:', err);
@@ -36,9 +34,7 @@ const BillPage = () => {
 
     const fetchCosponsors = async () => {
       try {
-        const res = await axios.get(`https://api.congress.gov/v3/bill/119/hr/${billNumber}/cosponsors`, {
-          params: { api_key: apiKey },
-        });
+        const res = await api.get(`/cosponsors/${billNumber}`)
         setCosponsors(res.data.cosponsors || []);
       } catch (err) {
         console.error('Failed to fetch cosponsors:', err);

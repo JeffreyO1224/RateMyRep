@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
+import api from './api';
 import axios from 'axios';
-
 const RepPage = () => {
   const ratings = [5, 4, 4, 3, 5, 2, 5, 4];
   const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
@@ -48,9 +48,7 @@ const RepPage = () => {
   useEffect(() => {
     const fetchMemberDetails = async () => {
       try {
-        const res = await axios.get(`https://api.congress.gov/v3/member/${bioguideId}`, {
-          params: { api_key: apiKey },
-        });
+        const res = await api.get(`/member/${bioguideId}`)
         setMemberDetails(res.data.member);
       } catch (error) {
         console.error('Error fetching member details:', error);
@@ -59,10 +57,7 @@ const RepPage = () => {
 
     const fetchSponsorBills = async () => {
       try {
-        const res = await axios.get(
-          `https://api.congress.gov/v3/member/${bioguideId}/sponsored-legislation`,
-          { params: { api_key: apiKey } }
-        );
+        const res = await api.get(`/sponsorbills/${bioguideId}`)
         setSponsorBills(res.data.sponsoredLegislation || []);
       } catch (error) {
         console.error('Error fetching sponsor bills:', error);
@@ -71,10 +66,7 @@ const RepPage = () => {
 
     const fetchCosponsorBills = async () => {
       try {
-        const res = await axios.get(
-          `https://api.congress.gov/v3/member/${bioguideId}/cosponsored-legislation`,
-          { params: { api_key: apiKey } }
-        );
+        const res = await api.get(`/cosponsorbills/${bioguideId}`)
         setCosponsorBills(res.data.cosponsoredLegislation || []);
       } catch (error) {
         console.error('Error fetching cosponsor bills:', error);
