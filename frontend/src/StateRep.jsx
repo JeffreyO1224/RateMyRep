@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "./api";
 import { Link } from 'react-router-dom';
 
 
@@ -10,7 +10,6 @@ const StateRep = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const apiKey = import.meta.env.VITE_REACT_APP_CONGRESS_API_KEY;
 
   const phoneBook = {
     "Adams, Alma": "(202) 225-1510",
@@ -32,30 +31,7 @@ const StateRep = () => {
     "Barragan, Nanette": "(202) 225-8220",
     "Barrett, Tom": "(202) 225-4872",
     "Baumgartner, Michael": "(202) 225-2006",
-    "Bean, Aaron": "(202) 225-0123",
-    "Beatty, Joyce": "(202) 225-4324",
-    "Begich, Nicholas": "(202) 225-5765",
-    "Bell, Wesley": "(202) 225-2406",
-    "Bentz, Cliff": "(202) 225-6730",
-    "Bera, Ami": "(202) 225-5716",
-    "Bergman, Jack": "(202) 225-4735",
-    "Beyer, Donald": "(202) 225-4376",
-    "Bice, Stephanie": "(202) 225-2132",
-    "Biggs, Andy": "(202) 225-2635",
-    "Biggs, Sheri": "(202) 225-5301",
-    "Bilirakis, Gus": "(202) 225-5755",
-    "Bishop, Sanford": "(202) 225-3631",
-    "Boebert, Lauren": "(202) 225-4761",
-    "Bonamici, Suzanne": "(202) 225-0855",
-    "Bost, Mike": "(202) 225-5661",
-    "Boyle, Brendan": "(202) 225-6111",
-    "Brecheen, Josh": "(202) 225-2701",
-    "Bresnahan, Robert": "(202) 225-5546",
-    "Brown, Shontel": "(202) 225-7032",
-    "Brownley, Julia": "(202) 225-5811",
-    "Buchanan, Vern": "(202) 225-5015",
-    "Budzinski, Nikki": "(202) 225-2371",
-    "Burchett, Tim": "(202) 225-5435",
+    "Bean, Aaron": "(202) 225-5435",
     "Burlison, Eric": "(202) 225-6536",
     "Bynum, Janelle": "(202) 225-5711",
     "Calvert, Ken": "(202) 225-1986",
@@ -463,14 +439,7 @@ const StateRep = () => {
     setMembers([]);
 
     try {
-      const response = await axios.get(`https://api.congress.gov/v3/member/${stateCode.toUpperCase()}`, {
-        params: {
-          api_key: apiKey
-        }
-      });
-
-
-
+      const response = await api.get(`/members/${stateCode}`)
       setMembers(response.data.members || []);
       if (response.data.members.length === 0) {
         setSearch(false);
