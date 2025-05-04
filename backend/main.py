@@ -136,12 +136,12 @@ async def closeDBConnection(conn):
 @app.get("/members/{bioguideID}/reviews")
 async def getRepReviews(bioguideID):
     query = f'''
-    SELECT * FROM Representative_Review WHERE rep_id={bioguideID};
+    SELECT * FROM Representative_Review WHERE rep_id='{bioguideID}';
     '''
     conn = await getConnection()
 
     try:
-        rows = await conn.fetch(query, bioguideID)
+        rows = await conn.fetch(query)
         if not rows:
             insertRepQuery = f'''
             INSERT INTO REPRESENTATIVE (rep_id, full_name, rating)
@@ -181,12 +181,12 @@ async def getRepReviews(bioguideID):
 @app.get("/bills/{bioguideID}/reviews")
 async def getBillReviews(bioguideID):
     query = f'''
-    SELECT * FROM Bill_Review WHERE bill_id={bioguideID};
+    SELECT * FROM Bill_Review WHERE bill_id='{bioguideID}';
     '''
     conn = await getConnection()
 
     try:
-        rows = await conn.fetch(query, bioguideID)
+        rows = await conn.fetch(query)
         if not rows:
             insertBillQuery = f'''
             INSERT INTO bill (bill_id, rating)
