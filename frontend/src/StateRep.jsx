@@ -526,7 +526,7 @@ const StateRep = () => {
             const phone = phoneBook[member.name] || "Phone number not available";
 
             return (
-      <a href={`/members/${member.bioguideId}/bills`}>
+      <a href={`/members/${member.bioguideId}/reps`}>
         {console.log(member.bioguideId)}
       <li 
         key={member.bioguideId} 

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import React from "react";
 import StateRep from "./StateRep.jsx";
-import BillsPage from './BillsPage.jsx';
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import './App.css';
+import RepPage from './RepPage.jsx';
+import BillPage from './BillPage.jsx';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -24,7 +25,8 @@ const AppLayout = () => {
     >
       <Routes>
         <Route path="/" element={<StateRep />} />
-        <Route path="/members/:bioguideId/bills" element={<BillsPage />} />
+        <Route path="/members/:bioguideId/reps" element={<RepPage />} />
+        <Route path="/bills/:billNumber" element={<BillPage />} />
       </Routes>
     </div>
   );
