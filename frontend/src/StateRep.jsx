@@ -479,7 +479,7 @@ const StateRep = () => {
           onChange={(e) => setStateCode(e.target.value)}
           style={{ padding: "8px", width: "80%", marginRight: "8px" }}
         />
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} style={{backgroundColor:"black", color: "white"}}>
           {loading ? "Loading..." : "Search"}
         </button>
       </form>

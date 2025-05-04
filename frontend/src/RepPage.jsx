@@ -3,8 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import api from './api';
 const RepPage = () => {
   const ratings = [5, 4, 4, 3, 5, 2, 5, 4];
-  const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
-  const comments = [
+  const comments_auto = [
     { name: "Alex P.", rating: 5, text: "Always supports strong policy!" },
     { name: "Jordan M.", rating: 4, text: "Generally good rep, some missed votes." },
     { name: "Taylor S.", rating: 2, text: "Not responsive to constituent concerns." },
@@ -21,7 +20,10 @@ const RepPage = () => {
     { name: "Robin Z.", rating: 1, text: "Never replies to emails or calls." },
     { name: "Quinn D.", rating: 2, text: "Votes against majority interest." },
   ];
-  
+  const before_avg = (comments_auto.reduce((a, b) => a + b, 0) / comments_auto.length).toFixed(1);
+
+  const [avg, setAvg] = useState(before_avg);
+  const [comments , setComments] = useState(comments_auto);
   const { bioguideId } = useParams();
   const [sponsorBills, setSponsorBills] = useState([]);
   const [cosponsorBills, setCosponsorBills] = useState([]);
@@ -32,7 +34,7 @@ const RepPage = () => {
   const [newRating, setNewRating] = useState(5);
   const [newName, setNewName] = useState('');
   const [newText, setNewText] = useState('');
-
+  const [draftText, setDraftText] = useState('');
   const bioRef = useRef(null);
   const apiKey = import.meta.env.VITE_REACT_APP_CONGRESS_API_KEY;
 
@@ -43,8 +45,64 @@ const RepPage = () => {
       ? 'rgb(25, 79, 179)'
       : 'rgb(25, 179, 25)';
   };
+  const getDraftText = async (name, occupation, neighborhood, state, concerns, message) => {
+    const sponsoredBills = sponsorBills.map((bill) => bill.title).join(', ');
+    const cosponsoredBills = cosponsorBills.map((bill) => bill.title).join(', ');
+    const messagePackage = {
+      name,
+      occupation,
+      neighborhood,
+      state,
+      concerns,
+      message,
+      sponsoredBills,
+      cosponsoredBills,
+      memberDetails,
+    };
+  
+    console.log("Sending draft message with:", messagePackage);
+    const AIMessage = await api.post('/draft', messagePackage);
+
+    if (AIMessage.status !== 200) {
+      console.error('Error generating draft message:', AIMessage.statusText);
+      return 'Oops. Lets try again later.';
+    }
+    
+    console.log(AIMessage.data);
+    return AIMessage.data.output_text;
+  };
+  const handleRatingSubmit = async () => {
+    if (newName && newText) {
+      setNewName('');
+      setNewText('');
+      setNewRating(5);
+      setShowRatingForm(false);
+      const endpoint = `/members/${bioguideId}/reviews/username=${encodeURIComponent(newName)}:rating=${encodeURIComponent(newRating)}:review_text=${encodeURIComponent(newText)}`;
+      
+      try {
+        const response = await api.post(endpoint);
+        console.log('Rating submitted successfully:', response.data);
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+      }
+    }
+  };
 
   useEffect(() => {
+
+    const fetchReviews = async () => {
+      try {
+        const res = await api.get(`/members/${bioguideId}/reviews`);
+        setComments(res.data || comments_auto);
+        const ratings = res.data.map((review) => review.rating);
+        const avgRating = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+        setAvg(avgRating);
+        console.log(res.data)
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+
     const fetchMemberDetails = async () => {
       try {
         const res = await api.get(`/member/${bioguideId}`)
@@ -71,7 +129,7 @@ const RepPage = () => {
         console.error('Error fetching cosponsor bills:', error);
       }
     };
-
+    fetchReviews();
     fetchMemberDetails();
     fetchSponsorBills();
     fetchCosponsorBills();
@@ -131,8 +189,39 @@ const RepPage = () => {
                 borderRadius: '8px',
               }}
             >
-              {/* Tab Selector */}
-              <div
+                      <img
+                      src={memberDetails.depiction?.imageUrl}
+                      alt={memberDetails.name}
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        objectFit: 'cover',
+                        borderTopLeftRadius: '8px',
+                        borderTopRightRadius: '8px',
+                      }}
+                      />
+                      <h2 style={{ paddingLeft: '16px' }}>{memberDetails.directOrderName}</h2>
+                      <div style={{ textAlign: 'left', paddingLeft: '16px', paddingBottom: '16px' }}>
+                      <p><strong>Party:</strong> {memberDetails.partyHistory?.[0]?.partyName}</p>
+                      <p><strong>Chamber:</strong> {memberDetails.terms?.[0]?.chamber}</p>
+                      <p><strong>District:</strong> {memberDetails.district}</p>
+                      <p>
+                        <strong>Website:</strong>{' '}
+                        <a href={memberDetails.officialWebsiteUrl} target="_blank" rel="noopener noreferrer">
+                        {memberDetails.officialWebsiteUrl}
+                        </a>
+                      </p>
+                      <p><strong>Phone:</strong> {memberDetails.addressInformation?.phoneNumber}</p>
+                      <p><strong>Office:</strong> {memberDetails.addressInformation?.officeAddress}, {memberDetails.addressInformation?.city} {memberDetails.addressInformation?.zipCode}</p>
+                      </div>
+                    </div>
+                    )}
+                  </div>
+
+                  {/* Tab Content */}
+        <div style={{ flex: '2 1 600px', margin: '0 auto' }}>
+                        {/* Tab Selector */}
+                        <div
                 style={{
                   display: 'flex',
                   justifyContent: 'center',
@@ -141,7 +230,7 @@ const RepPage = () => {
                   borderRadius: '8px 8px 0 0',
                 }}
               >
-                {['bills', 'comments'].map((tab) => (
+                {['bills', 'comments', 'draft'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -161,36 +250,7 @@ const RepPage = () => {
                   </button>
                 ))}
               </div>
-
-              {/* Bio Content */}
-              <img
-                src={memberDetails.depiction?.imageUrl}
-                alt={memberDetails.name}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  objectFit: 'cover',
-                }}
-              />
-              <h2 style={{ paddingLeft: '16px' }}>{memberDetails.directOrderName}</h2>
-              <div style={{ textAlign: 'left', paddingLeft: '16px', paddingBottom: '16px' }}>
-                <p><strong>Party:</strong> {memberDetails.partyHistory?.[0]?.partyName}</p>
-                <p><strong>Chamber:</strong> {memberDetails.terms?.[0]?.chamber}</p>
-                <p><strong>District:</strong> {memberDetails.district}</p>
-                <p>
-                  <strong>Website:</strong>{' '}
-                  <a href={memberDetails.officialWebsiteUrl} target="_blank" rel="noopener noreferrer">
-                    {memberDetails.officialWebsiteUrl}
-                  </a>
-                </p>
-                <p><strong>Phone:</strong> {memberDetails.addressInformation?.phoneNumber}</p>
-                <p><strong>Office:</strong> {memberDetails.addressInformation?.officeAddress}, {memberDetails.addressInformation?.city} {memberDetails.addressInformation?.zipCode}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Tab Content */}
+        
         <div style={{ flex: '2 1 600px' }}>
           {activeTab === 'bills' && (
             <div
@@ -215,6 +275,9 @@ const RepPage = () => {
                     {sponsorBills.map((bill, index) => (
                       <li
                         key={index}
+                        onClick={() => {
+                          window.location.href = `/bills/${bill.number}`;
+                        }}
                         style={{
                           marginBottom: '8px',
                           padding: '12px',
@@ -265,12 +328,7 @@ const RepPage = () => {
                       <li
                         key={index}
                         onClick={() => {
-                          console.log(bill);
-                          try {
-                            api.get(`/billdetails/${url}`)
-                          } catch (error) {
-                            console.error('Err:', error);
-                          }
+                          window.location.href = `/bills/${bill.number}`;
                         }}
                         style={{
                           marginBottom: '8px',
@@ -426,6 +484,7 @@ const RepPage = () => {
                                 setNewText('');
                                 setNewRating(5);
                                 setShowRatingForm(false);
+                                handleRatingSubmit();
                               } else {
                                 alert('Please fill out all fields');
                               }
@@ -483,6 +542,168 @@ const RepPage = () => {
               })()}
             </div>
           )}
+
+          {activeTab === 'draft' && (
+            <div>
+              <h3>Use AI to Help You Draft!</h3>
+              <div style={{ padding: '24px', maxWidth: '600px', margin: '0 auto' }}>
+                {draftText && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4>Drafted Message:</h4>
+                    <p>{draftText}</p>
+                  </div>
+                )}
+                {!draftText && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const name = formData.get('name');
+                    const occupation = formData.get('occupation');
+                    const neighborhood = formData.get('neighborhood');
+                    const state = formData.get('state');
+                    const concerns = formData.get('concerns');
+                    const message = formData.get('message');
+
+                    if (name && occupation && neighborhood && state && concerns && message) {
+                      const draft = getDraftText(name, occupation, neighborhood, state, concerns, message);
+                      setDraftText(draft);
+                      e.target.reset();
+                    } else {
+                      alert('Please fill out all fields.');
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    backgroundColor: '#f4f4f4',
+                    padding: '16px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <div>
+                    <label>
+                      Name:
+                      <input
+                        type="text"
+                        name="name"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Occupation:
+                      <input
+                        type="text"
+                        name="occupation"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Neighborhood:
+                      <input
+                        type="text"
+                        name="neighborhood"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      State:
+                      <input
+                        type="text"
+                        name="state"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Primary Concerns:
+                      <textarea
+                        name="concerns"
+                        rows="3"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      Personal Message:
+                      <textarea
+                        name="message"
+                        rows="5"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          marginTop: '4px',
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Generate Draft
+                  </button>
+                </form>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </div>
