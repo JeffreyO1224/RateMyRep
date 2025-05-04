@@ -177,12 +177,13 @@ def get_bill(billNumber):
     
 @app.get("/cosponsors/{billNumber}")
 def get_cosponsor_by_bill(billNumber):
-    url = f"https://api.congress.gov/v3/bill/117/hr/{billNumber}/cosponsors?api_key=[{API_KEY}"
+    url = f"https://api.congress.gov/v3/bill/119/hr/{billNumber}/cosponsors?api_key={API_KEY}"
     try:
         response = requests.get(url)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
+        print(e)
         raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
     
 @app.get("/billdetails/{url}")

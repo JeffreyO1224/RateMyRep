@@ -180,10 +180,11 @@ const BillPage = () => {
             <a href={`/members/${member.bioguideId}/reps`} key={member.bioguideId}>
               <li
                 style={{
+                  alignContent: "center",
                   marginBottom: "16px",
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "12px",
+                  gap: "6px",
                   padding: "16px",
                   borderRadius: "8px",
                   color: "black",
@@ -207,7 +208,6 @@ const BillPage = () => {
                   src={member.depiction?.imageUrl}
                   alt={name}
                   style={{
-                    width: "100%",
                     maxWidth: "200px",
                     height: "auto",
                     objectFit: "cover",
@@ -260,7 +260,7 @@ const BillPage = () => {
                   marginBottom: "16px",
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "12px",
+                  gap: "6px",
                   padding: "16px",
                   borderRadius: "8px",
                   color: "black",
@@ -284,7 +284,6 @@ const BillPage = () => {
                   src={member.depiction?.imageUrl}
                   alt={name}
                   style={{
-                    width: "100%",
                     maxWidth: "200px",
                     height: "auto",
                     objectFit: "cover",
