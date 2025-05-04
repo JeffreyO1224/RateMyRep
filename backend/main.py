@@ -84,7 +84,7 @@ def get_cosponsor_by_bill(billNumber):
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
     
-@app.get("/bill/{url}")
+@app.get("/billdetails/{url}")
 def get_bill_details():
     url = f"{url}?api_key={API_KEY}"
     try:
