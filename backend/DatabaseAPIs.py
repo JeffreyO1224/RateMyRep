@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import asyncpg
 import os
 from dotenv import load_dotenv
-from index import getConnection
+from backend.index import getConnection
 
 load_dotenv()
 
@@ -11,8 +11,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = FastAPI()
 
-# async def close_db_connection(conn):
-#     await conn.close()
+
 
 # Define Pydantic models for request and response data
 class Representative(BaseModel):
