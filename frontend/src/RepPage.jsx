@@ -99,6 +99,16 @@ const RepPage = () => {
     return () => observer.disconnect();
   }, [memberDetails]);
 
+  const [selectedBills, setSelectedBills] = useState([]);
+
+  const handleCheckboxChange = (billName) => (e) => {
+    if (e.target.checked) {
+      setSelectedBills((prev) => [...prev, billName]);
+    } else {
+      setSelectedBills((prev) => prev.filter((name) => name !== billName));
+    }
+  };
+
   return (
     <div style={{ width: '100%', backgroundColor: '#f9f9f9' }}>
       {/* Logo Header */}
@@ -194,6 +204,7 @@ const RepPage = () => {
                 </p>
                 <p><strong>Phone:</strong> {memberDetails.addressInformation?.phoneNumber}</p>
                 <p><strong>Office:</strong> {memberDetails.addressInformation?.officeAddress}, {memberDetails.addressInformation?.city} {memberDetails.addressInformation?.zipCode}</p>
+                <a href={`/compose`}>Compose Message</a>
               </div>
             </div>
           )}
@@ -253,6 +264,11 @@ const RepPage = () => {
                         </p>
                         <p><strong>Policy Area:</strong> {bill.policyArea?.name || 'N/A'}</p>
                         <p><strong>Latest Action:</strong> {bill.latestAction?.text || 'N/A'}</p>
+                        <input
+                          type="checkbox"
+                          checked={selectedBills.includes(bill.title)}
+                          onChange={handleCheckboxChange(bill.title)}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -314,6 +330,11 @@ const RepPage = () => {
                         </p>
                         <p><strong>Policy Area:</strong> {bill.policyArea?.name || 'N/A'}</p>
                         <p><strong>Latest Action:</strong> {bill.latestAction?.text || 'N/A'}</p>
+                        <input
+                          type="checkbox"
+                          checked={selectedBills.includes(bill.title)}
+                          onChange={handleCheckboxChange(bill.title)}
+                        />
                       </li>
                     ))}
                   </ul>

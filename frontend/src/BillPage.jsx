@@ -60,6 +60,16 @@ const BillPage = () => {
     return () => observer.disconnect();
   }, [billDetails]);
 
+  const [selectedBills, setSelectedBills] = useState([]);
+
+  const handleCheckboxChange = (billName) => (e) => {
+    if (e.target.checked) {
+      setSelectedBills((prev) => [...prev, billName]);
+    } else {
+      setSelectedBills((prev) => prev.filter((name) => name !== billName));
+    }
+  };
+
   return (
     <div style={{ width: '100%', backgroundColor: '#f9f9f9' }}>
       <div style={{ display: 'flex' }}>
@@ -119,6 +129,11 @@ const BillPage = () => {
                 <p><strong>Latest Action:</strong> {billDetails.latestAction?.text}</p>
                 <p><strong>Chamber:</strong> {billDetails.originChamber}</p>
                 <p><strong>Congress:</strong> {billDetails.congress}</p>
+                <input
+                  type="checkbox"
+                  checked={selectedBills.includes(billDetails.title)}
+                  onChange={handleCheckboxChange(billDetails.title)}
+                />
               </div>
             </div>
           )}

@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import './App.css';
 import RepPage from './RepPage.jsx';
 import BillPage from './BillPage.jsx';
+import Message from './Message.jsx';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -27,6 +28,7 @@ const AppLayout = () => {
         <Route path="/" element={<StateRep />} />
         <Route path="/members/:bioguideId/reps" element={<RepPage />} />
         <Route path="/bills/:billNumber" element={<BillPage />} />
+        <Route path="/compose" element={<Message />} />
       </Routes>
     </div>
   );
