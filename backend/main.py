@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -117,3 +117,17 @@ def get_rep(bioguideID):
         return response.json()
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Error fetching data: {str(e)}")
+    
+@app.get("/bulk/member")
+def get_reps(bioguideList: list[str] = Query(...)):
+    print(bioguideList)
+    members = []
+    for bioguide_id in bioguideList:
+        url = f"https://api.congress.gov/v3/member/{bioguide_id}?api_key={API_KEY}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            members.append(response.json())
+        except requests.RequestException as e:
+            raise HTTPException(status_code=502, detail=f"Error fetching data for {bioguide_id}: {str(e)}")
+    return {"members": members}

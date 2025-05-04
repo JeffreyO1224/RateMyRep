@@ -224,6 +224,9 @@ const RepPage = () => {
                     {sponsorBills.map((bill, index) => (
                       <li
                         key={index}
+                        onClick={() => {
+                          window.location.href = `/bills/${bill.number}`;
+                        }}
                         style={{
                           marginBottom: '8px',
                           padding: '12px',
@@ -274,16 +277,7 @@ const RepPage = () => {
                       <li
                         key={index}
                         onClick={() => {
-                          console.log(bill);
-                          try {
-                            axios.get(bill.url, {
-                              params: { api_key: apiKey },
-                            }).then((response) => {
-                              console.log('Bill Details:', response.data);
-                            });
-                          } catch (error) {
-                            console.error('Err:', error);
-                          }
+                          window.location.href = `/bills/${bill.number}`;
                         }}
                         style={{
                           marginBottom: '8px',
