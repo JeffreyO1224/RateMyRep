@@ -225,6 +225,25 @@ async def getRepReviews(bioguideID):
             VALUES ('{bioguideID}', 'John Doe', 3.5);
             '''
 
+            # insertQuery = f'''
+            # INSERT INTO representative_review (rep_id, reviewer, created_at, rating, review)
+            # VALUES
+            #     ('{bioguideID}', 'Alex P.', CURRENT_TIMESTAMP, 5, 'Always supports strong policy!'),
+            #     ('{bioguideID}', 'Jordan M.', CURRENT_TIMESTAMP, 4, 'Generally good rep, some missed votes.'),
+            #     ('{bioguideID}', 'Taylor S.', CURRENT_TIMESTAMP, 2, 'Not responsive to constituent concerns.'),
+            #     ('{bioguideID}', 'Morgan K.', CURRENT_TIMESTAMP, 5, 'Excellent communication with the community.'),
+            #     ('{bioguideID}', 'Chris R.', CURRENT_TIMESTAMP, 3, 'Mixed record on environmental issues.'),
+            #     ('{bioguideID}', 'Riley T.', CURRENT_TIMESTAMP, 4, 'Good on healthcare, not great on tech.'),
+            #     ('{bioguideID}', 'Casey L.', CURRENT_TIMESTAMP, 1, 'Does not represent our district well.'),
+            #     ('{bioguideID}', 'Devon W.', CURRENT_TIMESTAMP, 5, 'Always votes in our best interest!'),
+            #     ('{bioguideID}', 'Jesse B.', CURRENT_TIMESTAMP, 4, 'Solid voting record and transparency.'),
+            #     ('{bioguideID}', 'Dana S.', CURRENT_TIMESTAMP, 2, 'Seems out of touch with local concerns.'),
+            #     ('{bioguideID}', 'Skyler V.', CURRENT_TIMESTAMP, 3, 'Average performance, could improve.'),
+            #     ('{bioguideID}', 'Sam G.', CURRENT_TIMESTAMP, 5, 'Top-notch representative!'),
+            #     ('{bioguideID}', 'Jamie N.', CURRENT_TIMESTAMP, 4, 'Supportive of progressive policy.'),
+            #     ('{bioguideID}', 'Robin Z.', CURRENT_TIMESTAMP, 1, 'Never replies to emails or calls.'),
+            #     ('{bioguideID}', 'Quinn D.', CURRENT_TIMESTAMP, 2, 'Votes against majority interest.');
+            # '''
             insertQuery = f'''
             INSERT INTO representative_review (rep_id, reviewer, created_at, rating, review)
             VALUES
@@ -233,25 +252,14 @@ async def getRepReviews(bioguideID):
                 ('{bioguideID}', 'Taylor S.', CURRENT_TIMESTAMP, 2, 'Not responsive to constituent concerns.'),
                 ('{bioguideID}', 'Morgan K.', CURRENT_TIMESTAMP, 5, 'Excellent communication with the community.'),
                 ('{bioguideID}', 'Chris R.', CURRENT_TIMESTAMP, 3, 'Mixed record on environmental issues.'),
-                ('{bioguideID}', 'Riley T.', CURRENT_TIMESTAMP, 4, 'Good on healthcare, not great on tech.'),
-                ('{bioguideID}', 'Casey L.', CURRENT_TIMESTAMP, 1, 'Does not represent our district well.'),
-                ('{bioguideID}', 'Devon W.', CURRENT_TIMESTAMP, 5, 'Always votes in our best interest!'),
-                ('{bioguideID}', 'Jesse B.', CURRENT_TIMESTAMP, 4, 'Solid voting record and transparency.'),
-                ('{bioguideID}', 'Dana S.', CURRENT_TIMESTAMP, 2, 'Seems out of touch with local concerns.'),
-                ('{bioguideID}', 'Skyler V.', CURRENT_TIMESTAMP, 3, 'Average performance, could improve.'),
-                ('{bioguideID}', 'Sam G.', CURRENT_TIMESTAMP, 5, 'Top-notch representative!'),
-                ('{bioguideID}', 'Jamie N.', CURRENT_TIMESTAMP, 4, 'Supportive of progressive policy.'),
-                ('{bioguideID}', 'Robin Z.', CURRENT_TIMESTAMP, 1, 'Never replies to emails or calls.'),
-                ('{bioguideID}', 'Quinn D.', CURRENT_TIMESTAMP, 2, 'Votes against majority interest.');
             '''
-
             try:
                 await conn.fetch(insertRepQuery)
             except:
                 print('Rep already exists')
             await conn.fetch(insertQuery)
             rows = await conn.fetch(query)
-        return [{"reviewer": row['reviewer'], "rating": row['rating'], "review": row['review']} for row in rows]
+        return [{"name": row['reviewer'], "rating": row['rating'], "text": row['review']} for row in reversed(rows)]
     finally:
         await closeDBConnection(conn)
 
@@ -270,6 +278,25 @@ async def getBillReviews(bioguideID):
             VALUES ('{bioguideID}', 3.5);
             '''
 
+            # insertQuery = f'''
+            # INSERT INTO bill_review (bill_id, reviewer, created_at, rating, review)
+            # VALUES
+            #     ('{bioguideID}', 'Alex P.', CURRENT_TIMESTAMP, 5, 'Pretty great'),
+            #     ('{bioguideID}', 'Jordan M.', CURRENT_TIMESTAMP, 4, 'Its ok'),
+            #     ('{bioguideID}', 'Taylor S.', CURRENT_TIMESTAMP, 2, 'Not a big fan of this one'),
+            #     ('{bioguideID}', 'Morgan K.', CURRENT_TIMESTAMP, 5, 'This might save the state'),
+            #     ('{bioguideID}', 'Chris R.', CURRENT_TIMESTAMP, 3, 'Almost a great bill'),
+            #     ('{bioguideID}', 'Riley T.', CURRENT_TIMESTAMP, 4, 'This is pretty promising!'),
+            #     ('{bioguideID}', 'Casey L.', CURRENT_TIMESTAMP, 1, 'Have you all gone insane?'),
+            #     ('{bioguideID}', 'Devon W.', CURRENT_TIMESTAMP, 5, 'LETS DO IT!!'),
+            #     ('{bioguideID}', 'Jesse B.', CURRENT_TIMESTAMP, 4, 'Fingers crossed this turns out great'),
+            #     ('{bioguideID}', 'Dana S.', CURRENT_TIMESTAMP, 2, 'Seems out of touch with local concerns.'),
+            #     ('{bioguideID}', 'Skyler V.', CURRENT_TIMESTAMP, 3, 'Doesnt do enough'),
+            #     ('{bioguideID}', 'Sam G.', CURRENT_TIMESTAMP, 5, 'Amazing'),
+            #     ('{bioguideID}', 'Jamie N.', CURRENT_TIMESTAMP, 4, 'Supportive of progressive policy.'),
+            #     ('{bioguideID}', 'Robin Z.', CURRENT_TIMESTAMP, 1, 'This is going to do nothing for us'),
+            #     ('{bioguideID}', 'Quinn D.', CURRENT_TIMESTAMP, 2, 'What is the point of this?');
+            # '''
             insertQuery = f'''
             INSERT INTO bill_review (bill_id, reviewer, created_at, rating, review)
             VALUES
@@ -277,17 +304,7 @@ async def getBillReviews(bioguideID):
                 ('{bioguideID}', 'Jordan M.', CURRENT_TIMESTAMP, 4, 'Its ok'),
                 ('{bioguideID}', 'Taylor S.', CURRENT_TIMESTAMP, 2, 'Not a big fan of this one'),
                 ('{bioguideID}', 'Morgan K.', CURRENT_TIMESTAMP, 5, 'This might save the state'),
-                ('{bioguideID}', 'Chris R.', CURRENT_TIMESTAMP, 3, 'Almost a great bill'),
-                ('{bioguideID}', 'Riley T.', CURRENT_TIMESTAMP, 4, 'This is pretty promising!'),
-                ('{bioguideID}', 'Casey L.', CURRENT_TIMESTAMP, 1, 'Have you all gone insane?'),
-                ('{bioguideID}', 'Devon W.', CURRENT_TIMESTAMP, 5, 'LETS DO IT!!'),
-                ('{bioguideID}', 'Jesse B.', CURRENT_TIMESTAMP, 4, 'Fingers crossed this turns out great'),
-                ('{bioguideID}', 'Dana S.', CURRENT_TIMESTAMP, 2, 'Seems out of touch with local concerns.'),
-                ('{bioguideID}', 'Skyler V.', CURRENT_TIMESTAMP, 3, 'Doesnt do enough'),
-                ('{bioguideID}', 'Sam G.', CURRENT_TIMESTAMP, 5, 'Amazing'),
-                ('{bioguideID}', 'Jamie N.', CURRENT_TIMESTAMP, 4, 'Supportive of progressive policy.'),
-                ('{bioguideID}', 'Robin Z.', CURRENT_TIMESTAMP, 1, 'This is going to do nothing for us'),
-                ('{bioguideID}', 'Quinn D.', CURRENT_TIMESTAMP, 2, 'What is the point of this?');
+                ('{bioguideID}', 'Chris R.', CURRENT_TIMESTAMP, 3, 'Almost a great bill')
             '''
             try:
                 await conn.fetch(insertBillQuery)
@@ -295,7 +312,7 @@ async def getBillReviews(bioguideID):
                 print("Bill already exists")
             await conn.fetch(insertQuery)
             rows = await conn.fetch(query)
-        return [{"reviewer": row['reviewer'], "rating": row['rating'], "review": row['review']} for row in rows]
+        return [{"name": row['reviewer'], "rating": row['rating'], "text": row['review']} for row in reversed(rows)]
     finally:
         await closeDBConnection(conn)
 

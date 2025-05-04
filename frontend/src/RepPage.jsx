@@ -4,8 +4,7 @@ import api from './api';
 
 const RepPage = () => {
   const ratings = [5, 4, 4, 3, 5, 2, 5, 4];
-  const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
-  const comments = [
+  const comments_auto = [
     { name: "Alex P.", rating: 5, text: "Always supports strong policy!" },
     { name: "Jordan M.", rating: 4, text: "Generally good rep, some missed votes." },
     { name: "Taylor S.", rating: 2, text: "Not responsive to constituent concerns." },
@@ -22,7 +21,10 @@ const RepPage = () => {
     { name: "Robin Z.", rating: 1, text: "Never replies to emails or calls." },
     { name: "Quinn D.", rating: 2, text: "Votes against majority interest." },
   ];
-  
+  const before_avg = (comments_auto.reduce((a, b) => a + b, 0) / comments_auto.length).toFixed(1);
+
+  const [avg, setAvg] = useState(before_avg);
+  const [comments , setComments] = useState(comments_auto);
   const { bioguideId } = useParams();
   const [sponsorBills, setSponsorBills] = useState([]);
   const [cosponsorBills, setCosponsorBills] = useState([]);
@@ -70,9 +72,38 @@ const RepPage = () => {
     console.log(AIMessage.data);
     return AIMessage.data.output_text;
   };
-  
+  const handleRatingSubmit = async () => {
+    if (newName && newText) {
+      setNewName('');
+      setNewText('');
+      setNewRating(5);
+      setShowRatingForm(false);
+      const endpoint = `/members/${bioguideId}/reviews/username=${encodeURIComponent(newName)}:rating=${encodeURIComponent(newRating)}:review_text=${encodeURIComponent(newText)}`;
+      
+      try {
+        const response = await api.post(endpoint);
+        console.log('Rating submitted successfully:', response.data);
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+      }
+    }
+  };
 
   useEffect(() => {
+
+    const fetchReviews = async () => {
+      try {
+        const res = await api.get(`/members/${bioguideId}/reviews`);
+        setComments(res.data || comments_auto);
+        const ratings = res.data.map((review) => review.rating);
+        const avgRating = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+        setAvg(avgRating);
+        console.log(res.data)
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+
     const fetchMemberDetails = async () => {
       try {
         const res = await api.get(`/member/${bioguideId}`)
@@ -99,7 +130,7 @@ const RepPage = () => {
         console.error('Error fetching cosponsor bills:', error);
       }
     };
-
+    fetchReviews();
     fetchMemberDetails();
     fetchSponsorBills();
     fetchCosponsorBills();
@@ -454,6 +485,7 @@ const RepPage = () => {
                                 setNewText('');
                                 setNewRating(5);
                                 setShowRatingForm(false);
+                                handleRatingSubmit();
                               } else {
                                 alert('Please fill out all fields');
                               }

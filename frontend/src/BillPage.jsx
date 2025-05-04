@@ -13,14 +13,16 @@ const BillPage = () => {
   const bioRef = useRef(null);
 
   const ratings = [5, 4, 4, 3, 5, 2, 5, 4];
-  const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
-  const comments = [
+  const base_avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+  const base_comments = [
     { name: "Cameron H.", rating: 5, text: "Much-needed protection for seniors." },
     { name: "Leslie R.", rating: 3, text: "Decent intent but needs improvement." },
     { name: "Jamie L.", rating: 4, text: "Glad to see bipartisan support." },
     { name: "Reese M.", rating: 2, text: "Not comprehensive enough." },
     { name: "Robin A.", rating: 5, text: "Finally a bill that addresses real needs." },
   ];
+  const [avg, setAvg] = useState(base_avg);
+  const [comments, setComments] = useState(base_comments);
   const [showRatingForm, setShowRatingForm] = useState(false);
   const [newRating, setNewRating] = useState(5);
   const [newName, setNewName] = useState('');
@@ -28,8 +30,33 @@ const BillPage = () => {
   const partyColor = () => {
     return "#0f0f0f"; // Default color
   };
-
+  const handleRatingSubmit = async () => {
+    if (newName && newText) {
+      setNewName('');
+      setNewText('');
+      setNewRating(5);
+      setShowRatingForm(false);
+      const endpoint = `/bills/${billNumber}/reviews/username=${encodeURIComponent(newName)}:rating=${encodeURIComponent(newRating)}:review_text=${encodeURIComponent(newText)}`;
+      
+      try {
+        const response = await api.post(endpoint);
+        console.log('Rating submitted successfully:', response.data);
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+      }
+    }
+  };
   useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await api.get(`/bills/${billNumber}/reviews`);
+        setComments(res.data || comments_auto);
+        setAvg((res.data.reduce((a, b) => a + b.rating, 0) / res.data.length).toFixed(1));
+        console.log("REVS",res.data)
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
     const fetchBill = async () => {
       try {
         const res = await api.get(`/bill/${billNumber}`)
@@ -39,7 +66,7 @@ const BillPage = () => {
       }
     };
 
-
+    fetchReviews();
     fetchBill();
   }, [billNumber]);
 
@@ -208,7 +235,7 @@ const BillPage = () => {
                   src={member.depiction?.imageUrl}
                   alt={name}
                   style={{
-                    maxWidth: "200px",
+                    maxWidth: "150px",
                     height: "auto",
                     objectFit: "cover",
                     borderRadius: "8px",
@@ -218,7 +245,7 @@ const BillPage = () => {
                   <h3>{name}</h3>
                   <p><strong>Party:</strong> {member.partyName}</p>
                   {member.district && <p><strong>District:</strong> {member.district}</p>}
-                  <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
+                  {/* <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p> */}
                   <p><strong>Phone:</strong> {phone}</p>
                 </div>
               </li>
@@ -284,7 +311,7 @@ const BillPage = () => {
                   src={member.depiction?.imageUrl}
                   alt={name}
                   style={{
-                    maxWidth: "200px",
+                    maxWidth: "150px",
                     height: "auto",
                     objectFit: "cover",
                     borderRadius: "8px",
@@ -294,7 +321,7 @@ const BillPage = () => {
                   <h3>{name}</h3>
                   <p><strong>Party:</strong> {member.partyName}</p>
                   {member.district && <p><strong>District:</strong> {member.district}</p>}
-                  <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p>
+                  {/* <p><strong>Chamber:</strong> {member.terms?.item?.[0]?.chamber}</p> */}
                   <p><strong>Phone:</strong> {phone}</p>
                 </div>
               </li>
@@ -395,6 +422,7 @@ const BillPage = () => {
                           <button
                             onClick={() => {
                               if (newName && newText) {
+                        
                                 comments.unshift({
                                   name: newName,
                                   rating: newRating,
@@ -405,6 +433,7 @@ const BillPage = () => {
                                 setNewText('');
                                 setNewRating(5);
                                 setShowRatingForm(false);
+                                handleRatingSubmit();
                               } else {
                                 alert('Please fill out all fields');
                               }
